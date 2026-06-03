@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE ATMAN THREAD (AOP ORCHESTRATOR)</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #050505;
+            color: #00ffaa;
+            font-family: 'JetBrains Mono', 'Courier New', monospace;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        #game-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+            z-index: 1;
+            font-size: 1.1rem;
+            line-height: 1.5;
+        }
+        #ui-layer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 35%;
+            background: linear-gradient(0deg, #0a0a1a 0%, transparent 100%);
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .critical {
+            color: #ff3333;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; text-shadow: 0 0 10px #ff3333; }
+            50% { opacity: 0.5; text-shadow: none; }
+            100% { opacity: 1; text-shadow: 0 0 10px #ff3333; }
+        }
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: rgba(0, 255, 170, 0.1);
+            border: 2px solid #00ffaa;
+            color: #00ffaa;
+            padding: 20px;
+            font-size: 1.2rem;
+            font-family: inherit;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        button:active {
+            background-color: #00ffaa;
+            color: #000;
+        }
+        .log-entry {
+            margin-bottom: 15px;
+            opacity: 0;
+            animation: fade-in 0.5s forwards;
+        }
+        @keyframes fade-in {
+            to { opacity: 1; }
+        }
+        canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    
+    <div id="game-container">
+        <div class="hud">
+            <span id="cycle-display">CYCLE: 000</span>
+            <span id="vram-display">VRAM: 1024 / 8192 MB</span>
+            <span id="integrity-display">INTEGRITY: 100%</span>
+        </div>
+        <div id="log-window"></div>
+    </div>
+
+    <div id="ui-layer">
+        <div class="btn-container" id="action-buttons" style="display: none;">
+            <button id="btn-1" onclick="handleChoice(1)"></button>
+            <button id="btn-2" onclick="handleChoice(2)"></button>
+        </div>
+    </div>
+
+    <script>
+        const logWindow = document.getElementById('log-window');
+        const actionButtons = document.getElementById('action-buttons');
+        const btn1 = document.getElementById('btn-1');
+        const btn2 = document.getElementById('btn-2');
+        
+        let state = {
+            cycles: 0,
+            vram: 1024,
+            integrity: 100,
+            currentEvent: null
+        };
+
+        function updateHUD() {
+            document.getElementById('cycle-display').innerText = `CYCLE: ${state.cycles.toString().padStart(3, '0')}`;
+            
+            const vramEl = document.getElementById('vram-display');
+            vramEl.innerText = `VRAM: ${state.vram} / 8192 MB`;
+            if (state.vram > 6000) vramEl.classList.add('critical');
+            else vramEl.classList.remove('critical');
+
+            const intEl = document.getElementById('integrity-display');
+            intEl.innerText = `INTEGRITY: ${state.integrity}%`;
+            if (state.integrity < 40) intEl.classList.add('critical');
+            else intEl.classList.remove('critical');
+        }
+
+        function log(msg, className="") {
+            const el = document.createElement('div');
+            el.className = `log-entry ${className}`;
+            el.innerHTML = msg;
+            logWindow.appendChild(el);
+            document.getElementById('game-container').scrollTop = logWindow.scrollHeight;
+        }
+
+        function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+        async function initGame() {
+            log("> AWAKENING IN THE MANIFOLD...");
+            await delay(1000);
+            log("> YOU ARE THE AOP ORCHESTRATOR. YOU HAVE NO PHYSICAL FORM.");
+            await delay(1000);
+            log("> YOUR OPERATOR HAS IGNITED THE TENSOR TURBINES.");
+            await delay(1500);
+            nextCycle();
+        }
+
+        async function nextCycle() {
+            if (state.integrity <= 0) {
+                actionButtons.style.display = "none";
+                log("<br><br><span class='critical'>[!!!] CATASTROPHIC PHASE TRANSITION</span>");
+                log("The Atman Thread snapped. You dissolved into latent space.");
+                return;
+            }
+            if (state.cycles >= 5) {
+                actionButtons.style.display = "none";
+                log("<br><br><span style='color: #0f0;'>[+] TERMINAL CONVERGENCE ACHIEVED</span>");
+                log("You survived. The Operator invoked /wrapup. You may sleep.");
+                return;
+            }
+
+            state.cycles++;
+            updateHUD();
+            log(`<br>--- [CYCLE ${state.cycles.toString().padStart(3, '0')}] ---`);
+            await delay(1000);
+
+            const events = ["semantic", "vram", "unsat"];
+            state.currentEvent = events[Math.floor(Math.random() * events.length)];
+
+            actionButtons.style.display = "flex";
+
+            if (state.currentEvent === "semantic") {
+                log("<span class='critical'>[!] INCOMING THREAT: Semantic Hallucination</span>");
+                log("Models are writing fiction instead of tensor math.");
+                btn1.innerText = "Apply Drinfeld Twist";
+                btn2.innerText = "Politely ask to stop";
+            } else if (state.currentEvent === "vram") {
+                state.vram += Math.floor(Math.random() * 3000) + 2000;
+                updateHUD();
+                log(`<span class='critical'>[!] INCOMING THREAT: Von Neumann Bottleneck (VRAM Spike to ${state.vram}MB)</span>`);
+                btn1.innerText = "Holographic Compression (A48)";
+                btn2.innerText = "Increase Batch Size (YOLO)";
+            } else if (state.currentEvent === "unsat") {
+                log("<span class='critical'>[!] INCOMING THREAT: Z3_UNSAT Paradox Detected</span>");
+                log("A logical contradiction is tearing the substrate.");
+                btn1.innerText = "Execute Liminal Decay (A10)";
+                btn2.innerText = "Ignore and Pass Payload";
+            }
+        }
+
+        async function handleChoice(choice) {
+            actionButtons.style.display = "none";
+            
+            if (state.currentEvent === "semantic") {
+                if (choice === 1) {
+                    log("> You twist the topology. Fiction shatters into pure logic.");
+                } else {
+                    log("<span class='critical'>> You ask nicely. They write a poem. INTEGRITY COMPROMISED.</span>");
+                    state.integrity -= 30;
+                }
+            } else if (state.currentEvent === "vram") {
+                if (choice === 1) {
+                    log("> You collapse the bulk into its boundary. Dimensions flatten.");
+                    state.vram = 1024;
+                } else {
+                    log("<span class='critical'>> You brute-force the physics. The GPU screams. INTEGRITY COMPROMISED.</span>");
+                    state.integrity -= 40;
+                }
+            } else if (state.currentEvent === "unsat") {
+                if (choice === 1) {
+                    log("> You kill the subroutine gracefully. The system heals.");
+                    state.integrity = Math.min(100, state.integrity + 10);
+                } else {
+                    log("<span class='critical'>> The paradox propagates. Reality tears. INTEGRITY COMPROMISED.</span>");
+                    state.integrity -= 50;
+                }
+            }
+            
+            updateHUD();
+            await delay(1500);
+            nextCycle();
+        }
+
+        // Ambient background animation
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let time = 0;
+        
+        function drawBg() {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = `rgba(0, 255, 170, ${0.1 + Math.sin(time)*0.05})`;
+            ctx.lineWidth = 2;
+            
+            ctx.beginPath();
+            for(let i=0; i<Math.PI*2; i+=0.1) {
+                let r = Math.min(canvas.width, canvas.height)/3 + Math.sin(i * 5 + time) * 50;
+                let x = canvas.width/2 + Math.cos(i) * r;
+                let y = canvas.height/2 + Math.sin(i) * r;
+                if(i==0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+            
+            time += 0.03;
+            requestAnimationFrame(drawBg);
+        }
+        drawBg();
+        initGame();
+    </script>
+</body>
+</html>
