@@ -2,7 +2,7 @@ import ast
 import hashlib
 import json
 import logging
-from harden.parity_gate.auto_z3 import MobiusRouter
+from auto_z3 import MobiusRouter
 
 # Suppress basic logging to focus on the dramatic Gauntlet output
 logging.getLogger().setLevel(logging.CRITICAL)
